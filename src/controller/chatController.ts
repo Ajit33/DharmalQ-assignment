@@ -15,8 +15,7 @@ export const getCharacterResponse = async (req: Request, res: Response): Promise
 
         // 1️⃣ Find character in the database
         const characterEntry = await prisma.character.findUnique({
-            where: { name: character },
-            include: { dialogues: true }
+            where: { name: character }
         });
 
         if (!characterEntry) {
@@ -26,21 +25,36 @@ export const getCharacterResponse = async (req: Request, res: Response): Promise
             return;
         }
 
-        // 2️⃣ Find a matching dialogue (case-insensitive search)
-        const dialogueMatch = await prisma.dialogue.findFirst({
+        // 2️⃣ Find an exact dialogue match (case-insensitive)
+        const exactMatch = await prisma.dialogue.findFirst({
             where: {
                 characterId: characterEntry.id,
-                user_message: { equals: user_message, mode: "insensitive" } // Fix field name
+                user_message: { equals: user_message, mode: "insensitive" }
             }
         });
 
-        if (dialogueMatch) {
-            res.json({ response: dialogueMatch.response });
+        if (exactMatch) {
+            res.json({ response: exactMatch.response });
             return;
         }
 
-        // 3️⃣ No exact match → Generate a response using Gemini AI
-        console.log(`No exact match for '${user_message}', using Gemini AI.`);
+        // 3️⃣ Find a similar match using Prisma's raw query for `pg_trgm`
+        const similarMatch = await prisma.$queryRaw<
+            { response: string }[]
+        >`
+        SELECT response FROM "Dialogue"
+        WHERE "characterId" = ${characterEntry.id}
+        ORDER BY similarity(user_message, ${user_message}) DESC
+        LIMIT 1
+        `;
+
+        if (similarMatch.length > 0) {
+            res.json({ response: similarMatch[0].response });
+            return;
+        }
+
+        // 4️⃣ No exact or similar match → Generate a response using Gemini AI
+        console.log(`No match for '${user_message}', using Gemini AI.`);
         const aiResponse = await generateGeminiResponse(character, user_message);
         res.json({ response: aiResponse });
 
