@@ -16,47 +16,56 @@ export const getCharacterResponse = async (req: Request, res: Response): Promise
             return;
         }
 
-        // Ensure pg_trgm is enabled before making queries
-        await prisma.$executeRawUnsafe(`CREATE EXTENSION IF NOT EXISTS pg_trgm;`);
+        let mostRelevantDialogue: { response: string; user_message: string; character: string } | null = null;
 
-        // 1️⃣ Find character in the database
-        const characterEntry = await prisma.character.findUnique({
-            where: { name: character }
-        });
+        try {
+            const queryEmbedding = await generateGeminiResponse(user_message, "embedding");
 
-        if (!characterEntry) {
-            console.log(`Character '${character}' not found, using Gemini AI.`);
-            const aiResponse = await generateGeminiResponse(character, user_message);
-            res.json({ response: aiResponse, source: "genAi", context: null });
-            return;
+            const collection = await chroma.getCollection({
+                name: "movie_dialogues",
+                embeddingFunction: { generate: async (texts: string[]) => [] },
+            });
+
+            const results = await collection.query({
+                queryEmbeddings: [queryEmbedding],
+                nResults: 3, 
+            });
+
+            console.log("🔍 ChromaDB Query Results:", results);
+
+            mostRelevantDialogue = null;
+
+            if (results.metadatas && results.metadatas.length > 0 && Array.isArray(results.metadatas[0])) {
+                const metadataArray = results.metadatas[0];
+
+                const filteredMatch = metadataArray.find(
+                    (metadata) => metadata && String(metadata.character).toLowerCase() === character.toLowerCase()
+                );
+                
+
+                if (filteredMatch && typeof filteredMatch === "object" && "response" in filteredMatch) {
+                    mostRelevantDialogue = filteredMatch as { response: string; user_message: string; character: string };
+                    console.log(`Found Relevant Dialogue for ${character}: ${mostRelevantDialogue.response}`);
+                }
+            }
+        } catch (err) {
+            console.error("Error retrieving from ChromaDB:", err);
         }
 
-        // 2️⃣ Find most relevant dialogue using ChromaDB (Vector Search)
-        const queryEmbedding = await generateGeminiResponse(user_message, "embedding"); // Get embedding
-        const collection = await chroma.getCollection({
-            name: "movie_dialogues",
-            embeddingFunction: { generate: async (texts: string[]) => [] } // Dummy function
+        const context = mostRelevantDialogue
+            ? `You are ${character}. The user is asking you a question.\n\nHere is an example of how you talk:\n"${mostRelevantDialogue.response}"\n\nRespond in the same style.`
+            : null;
+
+        const aiResponse = await generateGeminiResponse(user_message, context || `You are ${character}. Respond in your unique movie character style.`);
+
+        res.json({
+            response: aiResponse.trim(),
+            source: "Gemini AI",
+            context: mostRelevantDialogue ? mostRelevantDialogue.response : null
         });
-
-        const results = await collection.query({
-            queryEmbeddings: [queryEmbedding],
-            nResults: 1, // Get the most relevant match
-        });
-
-        let mostRelevantDialogue = null;
-        if (results.documents.length > 0) {
-            mostRelevantDialogue = results.documents[0]; // Extract best match
-            console.log(`🔍 Found relevant dialogue: ${mostRelevantDialogue}`);
-        }
-
-        // 3️⃣ Use the retrieved dialogue as context for Gemini AI
-        const context = mostRelevantDialogue ? `${character}: ${mostRelevantDialogue}` : "";
-        const aiResponse = await generateGeminiResponse(user_message, context);
-
-        res.json({ response: aiResponse, source: mostRelevantDialogue ? "ChromaDB" : "genAi", context });
 
     } catch (error) {
-        console.error("❌ Error fetching response:", error);
+        console.error(" Error fetching response:", error);
         res.status(500).json({ error: "Internal Server Error" });
     }
 };
