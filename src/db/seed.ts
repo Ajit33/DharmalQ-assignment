@@ -14,6 +14,9 @@ const dialogues = [
 
 async function seedDatabase() {
     try {
+        console.log("🧹 Clearing old data...");
+        await prisma.dialogue.deleteMany({});
+        await prisma.character.deleteMany({});
         console.log("🌱 Seeding new data...");
 
         for (const { character, user_message, response } of dialogues) {
@@ -45,4 +48,3 @@ async function seedDatabase() {
 }
 
 seedDatabase();
-

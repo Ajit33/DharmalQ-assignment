@@ -1,8 +1,11 @@
-
-
 import { Request, Response } from "express";
 import prisma from "../db/PrismaClient";
-import { generateGeminiResponse } from "../utils/geminAiHelper"; // Ensure correct import
+import { generateGeminiResponse } from "../utils/geminAiHelper";
+import { ChromaClient } from "chromadb";
+import dotenv from "dotenv";
+
+dotenv.config();
+const chroma = new ChromaClient({ path: process.env.CHROMA_DB_PATH! });
 
 export const getCharacterResponse = async (req: Request, res: Response): Promise<void> => {
     try {
@@ -13,6 +16,9 @@ export const getCharacterResponse = async (req: Request, res: Response): Promise
             return;
         }
 
+        // Ensure pg_trgm is enabled before making queries
+        await prisma.$executeRawUnsafe(`CREATE EXTENSION IF NOT EXISTS pg_trgm;`);
+
         // 1️⃣ Find character in the database
         const characterEntry = await prisma.character.findUnique({
             where: { name: character }
@@ -21,45 +27,36 @@ export const getCharacterResponse = async (req: Request, res: Response): Promise
         if (!characterEntry) {
             console.log(`Character '${character}' not found, using Gemini AI.`);
             const aiResponse = await generateGeminiResponse(character, user_message);
-            res.json({ response: aiResponse });
+            res.json({ response: aiResponse, source: "genAi", context: null });
             return;
         }
 
-        // 2️⃣ Find an exact dialogue match (case-insensitive)
-        const exactMatch = await prisma.dialogue.findFirst({
-            where: {
-                characterId: characterEntry.id,
-                user_message: { equals: user_message, mode: "insensitive" }
-            }
+        // 2️⃣ Find most relevant dialogue using ChromaDB (Vector Search)
+        const queryEmbedding = await generateGeminiResponse(user_message, "embedding"); // Get embedding
+        const collection = await chroma.getCollection({
+            name: "movie_dialogues",
+            embeddingFunction: { generate: async (texts: string[]) => [] } // Dummy function
         });
 
-        if (exactMatch) {
-            res.json({ response: exactMatch.response });
-            return;
+        const results = await collection.query({
+            queryEmbeddings: [queryEmbedding],
+            nResults: 1, // Get the most relevant match
+        });
+
+        let mostRelevantDialogue = null;
+        if (results.documents.length > 0) {
+            mostRelevantDialogue = results.documents[0]; // Extract best match
+            console.log(`🔍 Found relevant dialogue: ${mostRelevantDialogue}`);
         }
 
-        // 3️⃣ Find a similar match using Prisma's raw query for `pg_trgm`
-        const similarMatch = await prisma.$queryRaw<
-            { response: string }[]
-        >`
-        SELECT response FROM "Dialogue"
-        WHERE "characterId" = ${characterEntry.id}
-        ORDER BY similarity(user_message, ${user_message}) DESC
-        LIMIT 1
-        `;
+        // 3️⃣ Use the retrieved dialogue as context for Gemini AI
+        const context = mostRelevantDialogue ? `${character}: ${mostRelevantDialogue}` : "";
+        const aiResponse = await generateGeminiResponse(user_message, context);
 
-        if (similarMatch.length > 0) {
-            res.json({ response: similarMatch[0].response });
-            return;
-        }
-
-        // 4️⃣ No exact or similar match → Generate a response using Gemini AI
-        console.log(`No match for '${user_message}', using Gemini AI.`);
-        const aiResponse = await generateGeminiResponse(character, user_message);
-        res.json({ response: aiResponse });
+        res.json({ response: aiResponse, source: mostRelevantDialogue ? "ChromaDB" : "genAi", context });
 
     } catch (error) {
-        console.error("Error fetching response:", error);
+        console.error("❌ Error fetching response:", error);
         res.status(500).json({ error: "Internal Server Error" });
     }
 };

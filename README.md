@@ -34,7 +34,11 @@ npx prisma generate
 ```
 ## 5️⃣ Seed the Database (Optional - Loads Predefined Dialogues
 ```
-npx ts-node prisma/seed.ts
+strat chroma db  
+```
+docker run -d -p 8000:8000 --name chromadb chromadb/chroma:0.6.3 --bind 0.0.0.0:8000
+```
+npm run migrate
 ```
 
 ## 6️⃣ Start the Server

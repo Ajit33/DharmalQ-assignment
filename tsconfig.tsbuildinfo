@@ -1,1 +1,1 @@
-{"root":["./src/index.ts"],"version":"5.6.3"}
+{"root":["./src/index.ts","./src/config/dbconnection.ts","./src/controller/chatcontroller.ts","./src/db/prismaclient.ts","./src/db/fuzzysearch.ts","./src/db/migrate.ts","./src/db/scraper.ts","./src/db/seed.ts","./src/route/chat.ts","./src/route/index.ts","./src/utils/geminaihelper.ts"],"version":"5.6.3"}
