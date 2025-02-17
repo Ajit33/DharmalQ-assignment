@@ -36,7 +36,7 @@ npx prisma generate
 ```
 strat chroma db  
 ```
-docker run -d -p 8000:8000 --name chromadb chromadb/chroma:0.6.3 --bind 0.0.0.0:8000
+docker run -d -p 8000:8000 --name chroma ghcr.io/chroma-core/chroma:0.6.3 
 ```
 npm run migrate
 ```

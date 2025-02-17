@@ -7,7 +7,7 @@
     "dev": "nodemon src/index.ts",
     "start": "node dist/index.js",
     "seed": "ts-node src/db/seed.ts",
-    "migrate": "ts-node src/db/seedChroma.ts",
+    "seed-chorma": "ts-node src/db/seedChroma.ts",
     "build": "tsc"
   },
   "keywords": [],
