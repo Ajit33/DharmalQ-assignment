@@ -85,4 +85,5 @@ Node.js - Backend Framework\
 Express.js - API Handling\
 PostgreSQL - Database\
 Prisma ORM - Database Management\
+ChromaDB  -Vector Database\
 Google Gemini AI - Character Response Gener\
