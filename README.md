@@ -38,6 +38,12 @@ strat chroma db
 ```
 docker run -d -p 8000:8000 --name chroma ghcr.io/chroma-core/chroma:0.6.3 
 ```
+```
+start redis
+```
+```
+ docker run -d --name redis-server -p 6379:6379 redis
+```
 npm run migrate
 ```
 

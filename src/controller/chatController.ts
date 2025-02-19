@@ -64,7 +64,7 @@ export const getCharacterResponse = async (req: Request, res: Response): Promise
             console.error(" Error retrieving from ChromaDB:", err);
         }
 
-        // 🔥 Generate AI response using Gemini
+        //  Generate AI response using Gemini
         const context = mostRelevantDialogue
             ? `You are ${character}. The user is asking you a question.\n\nHere is an example of how you talk:\n"${mostRelevantDialogue.response}"\n\nRespond in the same style.`
             : null;

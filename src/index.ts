@@ -5,6 +5,7 @@ import cors from "cors"
 import prisma from "./db/PrismaClient"
 import dotenv from "dotenv"
 import rootRouter from "./route/index"
+import rateLimiter from "./middlewares/rateLimiter"
 
 
 
@@ -12,7 +13,7 @@ import rootRouter from "./route/index"
 const app=express()
 app.use(express.json())
 dotenv.config()
-app.use("/api/v1/",rootRouter)
+app.use("/api/v1/",rateLimiter,rootRouter)
 app.use(cors())
 
 
