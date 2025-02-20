@@ -3,6 +3,8 @@ AI Movie Character Chatbot 🎭
 
 # Description
 This backend project allows users to chat with famous movie characters. Based on the user’s message, it mimics the selected character’s speech style and provides a response. If an exact dialogue is not found in the database, the system generates a response that matches the character’s personality using Gemini AI.
+#Demonstration
+https://youtu.be/lJ7jjHLnac4
 
 # Installation & Setup
 Follow these steps to set up the project on your local machine.
