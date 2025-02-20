@@ -3,12 +3,21 @@ AI Movie Character Chatbot 🎭
 
 # Description
 This backend project allows users to chat with famous movie characters. Based on the user’s message, it mimics the selected character’s speech style and provides a response. If an exact dialogue is not found in the database, the system generates a response that matches the character’s personality using Gemini AI.
-#Demonstration
-https://youtu.be/lJ7jjHLnac4
+# Demonstration
+[![Watch the video](https://img.youtube.com/vi/lJ7jjHLnac4/maxresdefault.jpg)](https://youtu.be/lJ7jjHLnac4)
 
+### [Watch this video on YouTube](https://youtu.be/lJ7jjHLnac4)
+[![Watch the video](https://img.youtube.com/vi/6_Xy9eXt54c/maxresdefault.jpg)](https://youtu.be/6_Xy9eXt54c)
+
+### [Watch this video on YouTube](https://youtu.be/6_Xy9eXt54c)
 # Installation & Setup
 Follow these steps to set up the project on your local machine.
+[![Watch the video](https://img.youtube.com/vi/ms3O_h2cwnI/maxresdefault.jpg)](https://youtu.be/ms3O_h2cwnI)
 
+### [Watch this video on YouTube](https://youtu.be/ms3O_h2cwnI)
+[![Watch the video](https://img.youtube.com/vi/ibi-T6dODew/maxresdefault.jpg)](https://youtu.be/ibi-T6dODew)
+
+### [Watch this video on YouTube](https://youtu.be/ibi-T6dODew)
 ## 1️⃣ Clone the Repository
 ```
 git clone https://github.com/Ajit33/DharmalQ-assignment.git
