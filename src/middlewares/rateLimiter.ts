@@ -7,12 +7,10 @@ const rateLimiter = rateLimit({
         sendCommand: async (...args: any[]) => redisClient.sendCommand(args),
     }),
     windowMs: 1000,
-    max: 5, 
+    max: 100, 
     message: " Too many requests. Please try again later.",
     standardHeaders: true, 
     legacyHeaders: false, 
 });
 
 export default rateLimiter;
-
-

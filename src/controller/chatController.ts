@@ -1,12 +1,9 @@
 import { Request, Response } from "express";
-
-import { generateGeminiResponse } from "../utils/geminAiHelper";
-import { ChromaClient } from "chromadb";
-import dotenv from "dotenv";
+import { chatQueue } from "../utils/queue"; 
 import redisClient from "../utils/redisClient"; 
+import dotenv from "dotenv";
 
 dotenv.config();
-const chroma = new ChromaClient({ path: process.env.CHROMA_DB_PATH! });
 
 export const getCharacterResponse = async (req: Request, res: Response): Promise<void> => {
     try {
@@ -18,67 +15,24 @@ export const getCharacterResponse = async (req: Request, res: Response): Promise
         }
 
         const redisKey = `chat:${character}:${user_message}`;
-        
-        // getting response from Redis cache
-        const cachedResponse = await redisClient.get(redisKey);
-        if (cachedResponse) {
-            console.log(" Cache hit:", cachedResponse);
-            res.json({ response: cachedResponse, source: "Redis Cache", context: null });
-            return;
-        }
-
-        let mostRelevantDialogue: { response: string; user_message: string; character: string } | null = null;
 
         try {
-            //  Generate embedding
-            const queryEmbedding = await generateGeminiResponse(user_message, "embedding");
-
-            // Get ChromaDB collection
-            const collection = await chroma.getCollection({
-                name: "movie_dialogues",
-                embeddingFunction: { generate: async (texts: string[]) => [] },
-            });
-
-            // Query top 3 results
-            const results = await collection.query({
-                queryEmbeddings: [queryEmbedding],
-                nResults: 3, 
-            });
-
-            console.log(" ChromaDB Query Results:", results);
-
-            // Find the most relevant dialogue for the requested character
-            if (results.metadatas?.length > 0 && Array.isArray(results.metadatas[0])) {
-                const metadataArray = results.metadatas[0];
-
-                const filteredMatch = metadataArray.find(
-                    (metadata) => metadata && String(metadata.character).toLowerCase() === character.toLowerCase()
-                );
-
-                if (filteredMatch && typeof filteredMatch === "object" && "response" in filteredMatch) {
-                    mostRelevantDialogue = filteredMatch as { response: string; user_message: string; character: string };
-                    console.log(`🎭 Found Relevant Dialogue for ${character}: ${mostRelevantDialogue.response}`);
-                }
+            // 🔍 Check if response exists in Redis cache
+            const cachedResponse = await redisClient.get(redisKey);
+            if (cachedResponse) {
+                console.log(" Cache hit:", cachedResponse);
+                res.json({ response: cachedResponse, source: "Redis Cache", context: null });
+                return;
             }
-        } catch (err) {
-            console.error(" Error retrieving from ChromaDB:", err);
+        } catch (redisError) {
+            console.error(" Redis Error:", redisError);
         }
 
-        //  Generate AI response using Gemini
-        const context = mostRelevantDialogue
-            ? `You are ${character}. The user is asking you a question.\n\nHere is an example of how you talk:\n"${mostRelevantDialogue.response}"\n\nRespond in the same style.`
-            : null;
+        //  Add task to queue instead of processing synchronously
+        await chatQueue.add("processChat", { character, user_message, redisKey });
 
-        const aiResponse = await generateGeminiResponse(user_message, context || `You are ${character}. Respond in your unique movie character style.`);
-
-        // Store response in Redis for caching (expires in 1 hour)
-        await redisClient.set(redisKey, aiResponse.trim(), { EX: 3600 });
-
-        res.json({
-            response: aiResponse.trim(),
-            source: "Gemini AI",
-            context: mostRelevantDialogue ? mostRelevantDialogue.response : null
-        });
+        //  Return fast response while worker processes the task
+        res.json({ message: "Processing your request... Please wait!", taskQueued: true });
 
     } catch (error) {
         console.error(" Error fetching response:", error);
