@@ -18,6 +18,9 @@ Follow these steps to set up the project on your local machine.
 [![Watch the video](https://img.youtube.com/vi/ibi-T6dODew/maxresdefault.jpg)](https://youtu.be/ibi-T6dODew)
 
 ### [Watch this video on YouTube](https://youtu.be/ibi-T6dODew)
+[![Watch the video](https://img.youtube.com/vi/rCeU68dVknY/maxresdefault.jpg)](https://youtu.be/rCeU68dVknY)
+
+### [Watch this video on YouTube](https://youtu.be/rCeU68dVknY)
 ## 1️⃣ Clone the Repository
 ```
 git clone https://github.com/Ajit33/DharmalQ-assignment.git
