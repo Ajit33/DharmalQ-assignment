@@ -28,7 +28,7 @@ export async function generateGeminiResponse(user_message: string, context?: str
 
             console.log(" Gemini AI Raw Response:", JSON.stringify(response.data, null, 2));
 
-            //  FIX: Ensure response structure exists before accessing it
+            // Ensure response structure exists before accessing it
             if (
                 response.data &&
                 response.data.candidates &&

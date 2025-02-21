@@ -30,4 +30,11 @@ model ChromaScript {
 
   @@map("chroma_scripts")
 }
-
+model ChatHistory {
+  id         String   @id @default(uuid())
+  userId     String   
+  character  String   
+  userMessage String  
+  botResponse String  
+  createdAt  DateTime @default(now())
+}

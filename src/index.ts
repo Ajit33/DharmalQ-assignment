@@ -9,7 +9,8 @@ import rootRouter from "./route/index";
 
 
 import rateLimiter from "./middlewares/rateLimiter";
-import { fetchCharacterResponse,} from "./controller/chatController";
+import { fetchCharacterResponse } from "./service/fetchCharacterResponse";
+
 
 dotenv.config();
 
@@ -29,21 +30,17 @@ wss.on("connection", (ws) => {
     console.log("Client connected");
   
     ws.on("message", async (message) => {
-      try {
-        const parsedMessage = JSON.parse(message.toString());
-        console.log(parsedMessage)
-        // Ensure required properties exist
-        if (!parsedMessage.character || !parsedMessage.user_message) {
-          ws.send(JSON.stringify({ error: "Character and message are required." }));
-          return;
-        }
-  
-        const { character, user_message } = parsedMessage;
-         console.log(character,user_message)
-        // ✅ Use fetchCharacterResponse instead of getCharacterResponse
-        const response = await fetchCharacterResponse(character, user_message);
-  
-        ws.send(JSON.stringify(response));
+        try {
+            const { userId, character, user_message } = JSON.parse(message.toString());
+    
+            if (!userId || !character || !user_message) {
+                ws.send(JSON.stringify({ error: "User ID, Character, and Message are required." }));
+                return;
+            }
+    
+            const response = await fetchCharacterResponse(userId, character, user_message);
+    
+            ws.send(JSON.stringify(response));
       } catch (error) {
         console.error("Error processing message:", error);
         ws.send(JSON.stringify({ error: "Failed to process message" }));
