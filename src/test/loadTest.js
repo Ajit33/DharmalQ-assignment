@@ -21,3 +21,5 @@ export default function () {
   http.post(url, payload, params);
   sleep(1);
 }
+
+//docker run --rm --network host -i grafana/k6 run - < src/test/loadTest.js

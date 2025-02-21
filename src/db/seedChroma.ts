@@ -6,7 +6,7 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 const prisma = new PrismaClient();
-const chroma = new ChromaClient({ path: process.env.CHROMA_DB_PATH! });
+ export const chroma = new ChromaClient({ path: process.env.CHROMA_DB_PATH! });
 
 async function seedChroma() {
   try {
