@@ -3,7 +3,7 @@ import { getCharacterResponse } from "../controller/chatController"
 
 const route =express.Router()
 
-route.post("/",getCharacterResponse)
+route.get("/",getCharacterResponse)
 
 
 export default route

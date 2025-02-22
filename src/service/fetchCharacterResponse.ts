@@ -48,7 +48,7 @@ export const fetchCharacterResponse = async (userId: string, character: string, 
 
                 if (filteredMatch && typeof filteredMatch === "object" && "response" in filteredMatch) {
                     mostRelevantDialogue = filteredMatch as { response: string; user_message: string; character: string };
-                    console.log(`🎭 Found Relevant Dialogue for ${character}: "${mostRelevantDialogue.response}"`);
+                    console.log(` Found Relevant Dialogue for ${character}: "${mostRelevantDialogue.response}"`);
                 }
             }
         } catch (err) {

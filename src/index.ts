@@ -6,13 +6,15 @@ import cors from "cors";
 import prisma from "./db/PrismaClient";
 import dotenv from "dotenv";
 import rootRouter from "./route/index";
-
+import client from "prom-client"
 
 import rateLimiter from "./middlewares/rateLimiter";
 import { fetchCharacterResponse } from "./service/fetchCharacterResponse";
+import { TrackRequest } from "./middlewares/trackRequest";
 
 
 dotenv.config();
+
 
 const app = express();
 const server = createServer(app); // Create HTTP Server
@@ -21,7 +23,7 @@ const wss = new WebSocketServer({ server }); // Create WebSocket Server
 app.use(express.json()); 
 app.use(express.urlencoded({ extended: true }));
 app.use(cors());
-app.use("/api/v1/",rateLimiter, rootRouter);
+app.use("/api/v1/",rateLimiter,TrackRequest, rootRouter);
 
 const PORT = process.env.PORT || 3000;
 
@@ -60,6 +62,7 @@ const startServer = async () => {
 
         server.listen(PORT, () => {
             console.log(`Server is running on port ${PORT}`);
+            console.log(` Prometheus metrics available at http://localhost:${PORT}/metrics`);
         });
     } catch (error) {
         console.error("Failed to start server:", error);
