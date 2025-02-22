@@ -8,7 +8,7 @@ const GEMINI_EMBEDDING_URL = `https://generativelanguage.googleapis.com/v1beta/m
 export class GeminiAI {
   static async getEmbedding(text: string): Promise<number[]> {
     if (!GEMINI_API_KEY) {
-      throw new Error("Missing GEMINAI_API_KEY in environment variables.");
+      throw new Error("Missing GEMINAI_API_KEY in environment variables");
     }
 
     try {

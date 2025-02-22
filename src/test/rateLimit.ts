@@ -9,7 +9,7 @@ let data = JSON.stringify({
 let config = {
   method: 'post',
   maxBodyLength: Infinity,
-  url: 'http://localhost:3000/api/v1/chat',
+  url: 'http://localhost:5000/api/v1/chat',
   headers: { 
     'Content-Type': 'application/json'
   },

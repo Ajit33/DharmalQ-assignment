@@ -3,14 +3,14 @@ import { check, sleep } from "k6";
 
 export let options = {
   stages: [
-    { duration: "10s", target: 10 }, 
-    { duration: "30s", target: 10 }, 
+    { duration: "10s", target: 1000 }, 
+    { duration: "30s", target: 1000 }, 
     { duration: "10s", target: 0 },  
   ],
 };
 
 export default function () {
-  let url = "ws://host.docker.internal:3000"; 
+  let url = "ws://host.docker.internal:5000"; 
 
   let res = ws.connect(url, function (socket) {
     socket.on("open", function () {
