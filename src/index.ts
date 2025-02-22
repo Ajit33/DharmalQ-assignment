@@ -62,7 +62,7 @@ const startServer = async () => {
 
         server.listen(PORT, () => {
             console.log(`Server is running on port ${PORT}`);
-            console.log(` Prometheus metrics available at http://localhost:${PORT}/metrics`);
+            
         });
     } catch (error) {
         console.error("Failed to start server:", error);

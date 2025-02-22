@@ -1,8 +1,8 @@
 global:
-  scrape_interval: 5s  # Adjust based on needs
+  scrape_interval: 5s  
 
 scrape_configs:
   - job_name: "node_app"
-    metrics_path: "/api/v1/metrics"  # Ensure your app exposes this endpoint
+    metrics_path: "/api/v1/metrics" 
     static_configs:
-      - targets: ["host.docker.internal:5000"]  # Works on Windows/macOS
+      - targets: ["host.docker.internal:5000"] 
